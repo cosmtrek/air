@@ -29,6 +29,7 @@ type config struct {
 
 type cfgBuild struct {
 	Cmd           string        `toml:"cmd"`
+	Shell         string        `toml:"shell"`
 	Bin           string        `toml:"bin"`
 	FullBin       string        `toml:"full_bin"`
 	Log           string        `toml:"log"`
@@ -112,6 +113,7 @@ func readConfByName(name string) (*config, error) {
 func defaultConfig() config {
 	build := cfgBuild{
 		Cmd:         "go build -o ./tmp/main .",
+		Shell:       "sh",
 		Bin:         "./tmp/main",
 		Log:         "build-errors.log",
 		IncludeExt:  []string{"go", "tpl", "tmpl", "html"},
