@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"runtime"
 	"time"
@@ -79,7 +80,7 @@ type cfgMisc struct {
 	CleanOnExit bool `toml:"clean_on_exit"`
 }
 
-func initConfig(path string) (cfg *config, err error) {
+func InitConfig(path string) (cfg *config, err error) {
 	if path == "" {
 		cfg, err = defaultPathConfig()
 		if err != nil {
@@ -299,4 +300,13 @@ func (c *config) rel(path string) string {
 		return ""
 	}
 	return s
+}
+
+func (c *config) WithArgs(args map[string]TomlInfo) {
+	for _, value := range args {
+		if value.Value != nil && *value.Value != "" {
+			v := reflect.ValueOf(c)
+			setValue2Struct(v, value.fieldPath, *value.Value)
+		}
+	}
 }

@@ -1,8 +1,11 @@
 package runner
 
 import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -124,3 +127,26 @@ func TestChecksumMap(t *testing.T) {
 		t.Errorf("expected no entry for bar.txt, but had one")
 	}
 }
+
+func TestGetStructureFieldTagMap(t *testing.T) {
+	c := config{}
+	tagMap := CreateStructureFieldTagMap(c)
+	for _, i2 := range tagMap {
+		fmt.Printf("%v\n", i2.fieldPath)
+	}
+}
+
+func TestSetStructValue(t *testing.T) {
+	c := config{}
+	v := reflect.ValueOf(&c)
+	setValue2Struct(v, "TmpDir", "asdasd")
+	assert.Equal(t, "asdasd", c.TmpDir)
+}
+
+func TestNestStructValue(t *testing.T) {
+	c := config{}
+	v := reflect.ValueOf(&c)
+	setValue2Struct(v, "Build.Cmd", "asdasd")
+	assert.Equal(t, "asdasd", c.Build.Cmd)
+}
+

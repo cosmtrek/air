@@ -15,6 +15,7 @@ var (
 	cfgPath     string
 	debugMode   bool
 	showVersion bool
+	cmdArgs     map[string]runner.TomlInfo
 )
 
 func helpMessage() {
@@ -32,6 +33,7 @@ func init() {
 	flag.StringVar(&cfgPath, "c", "", "config path")
 	flag.BoolVar(&debugMode, "d", false, "debug mode")
 	flag.BoolVar(&showVersion, "v", false, "show version")
+	cmdArgs = runner.CreateArgsFlags()
 	flag.Parse()
 }
 
@@ -50,12 +52,17 @@ func main() {
 	if debugMode {
 		fmt.Println("[debug] mode")
 	}
-
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	var err error
-	r, err := runner.NewEngine(cfgPath, debugMode)
+	cfg, err := runner.InitConfig(cfgPath)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	cfg.WithArgs(cmdArgs)
+	r, err := runner.NewEngineWithConfig(cfg, debugMode)
 	if err != nil {
 		log.Fatal(err)
 		return

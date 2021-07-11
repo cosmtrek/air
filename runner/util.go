@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -269,4 +270,65 @@ func (a *checksumMap) updateFileChecksum(filename, newChecksum string) (ok bool)
 		return true
 	}
 	return false
+}
+
+type TomlInfo struct {
+	fieldPath string
+	field     reflect.StructField
+	Value     *string
+}
+
+func setValue2Struct(v reflect.Value, fieldName string, value string) {
+	index := strings.Index(fieldName, ".")
+	if index == -1 && len(fieldName) == 0 {
+		return
+	}
+	fields := strings.Split(fieldName, ".")
+	var addressableVal reflect.Value
+	switch v.Type().String() {
+	case "*runner.config":
+		addressableVal = v.Elem()
+	default:
+		addressableVal = v
+	}
+	if len(fields) == 1 {
+		field := addressableVal.FieldByName(fieldName)
+		field.SetString(value)
+	} else if len(fields) == 0 {
+		return
+	} else {
+		field := addressableVal.FieldByName(fields[0])
+		s2 := fieldName[index+1:]
+		setValue2Struct(field, s2, value)
+	}
+}
+
+// CreateStructureFieldTagMap ...
+func CreateStructureFieldTagMap(stut interface{}) map[string]TomlInfo {
+	m := make(map[string]TomlInfo)
+	t := reflect.TypeOf(stut)
+	setTage2Map("", t, m, "")
+	return m
+}
+
+func setTage2Map(root string, t reflect.Type, m map[string]TomlInfo, fieldPath string) {
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		tomlVal := field.Tag.Get("toml")
+		switch field.Type.Kind() {
+		case reflect.Struct:
+			path := fieldPath + field.Name + "."
+			setTage2Map(root+tomlVal+".", field.Type, m, path)
+		default:
+			if tomlVal == "" {
+				continue
+			}
+			tomlPath := root + tomlVal
+			path := fieldPath + field.Name
+			var v *string
+			str := ""
+			v = &str
+			m[tomlPath] = TomlInfo{field: field, Value: v, fieldPath: path}
+		}
+	}
 }
