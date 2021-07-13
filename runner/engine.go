@@ -1,10 +1,12 @@
 package runner
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -403,7 +405,14 @@ func (e *Engine) building() error {
 func (e *Engine) runBin() error {
 	var err error
 	e.runnerLog("running...")
-	cmd, stdout, stderr, err := e.startCmd(e.config.Build.Bin)
+
+	commandWithArgs := fmt.Sprintf(
+		"%s %s",
+		e.config.Build.Bin,
+		strings.Join(e.config.Build.ArgsBin, " "),
+	)
+
+	cmd, stdout, stderr, err := e.startCmd(commandWithArgs)
 	if err != nil {
 		return err
 	}
