@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -200,6 +201,14 @@ func cmdPath(path string) string {
 	return strings.Split(path, " ")[0]
 }
 
+func addArgs(bin string, args []string) string {
+	for _, arg := range args {
+		bin += fmt.Sprintf(" %s", arg)
+	}
+
+	return bin
+}
+
 func adaptToVariousPlatforms(c *config) {
 	// Fix the default configuration is not used in Windows
 	// Use the unix configuration on Windows
@@ -219,15 +228,20 @@ func adaptToVariousPlatforms(c *config) {
 
 				c.Build.FullBin += extName
 			}
+
 			if !strings.HasPrefix(c.Build.FullBin, runName) {
 				c.Build.FullBin = runName + " /wait /b " + c.Build.FullBin
 			}
+
+			c.Build.FullBin = addArgs(c.Build.FullBin, c.Build.ArgsBin)
 		}
 
 		// bin=/tmp/main  cmd=go build -o ./tmp/main.exe main.go
 		if !strings.Contains(c.Build.Cmd, c.Build.Bin) && strings.Contains(c.Build.Cmd, originBin) {
 			c.Build.Cmd = strings.Replace(c.Build.Cmd, originBin, c.Build.Bin, 1)
 		}
+
+		c.Build.Bin = addArgs(c.Build.Bin, c.Build.ArgsBin)
 	}
 }
 
