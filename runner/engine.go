@@ -191,7 +191,7 @@ func (e *Engine) cacheFileChecksums(root string) error {
 			}
 		}
 
-		if e.isExcludeFile(path) || !e.isIncludeExt(path) {
+		if e.isExcludeFile(path) || !e.isIncludeExt(path) && !e.checkIncludeFile(path) {
 			e.watcherDebug("!exclude checksum %s", e.config.rel(path))
 			return nil
 		}
@@ -256,7 +256,7 @@ func (e *Engine) watchPath(path string) error {
 				if excludeRegex {
 					break
 				}
-				if !e.isIncludeExt(ev.Name) {
+				if !e.isIncludeExt(ev.Name) && !e.checkIncludeFile(ev.Name) {
 					break
 				}
 				e.watcherDebug("%s has changed", e.config.rel(ev.Name))
@@ -322,7 +322,7 @@ func (e *Engine) start() {
 			e.mainDebug("exit in start")
 			return
 		case filename = <-e.eventCh:
-			if !e.isIncludeExt(filename) {
+			if !e.isIncludeExt(filename) && !e.checkIncludeFile(filename) {
 				continue
 			}
 			if e.config.Build.ExcludeUnchanged {
