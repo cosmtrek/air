@@ -359,11 +359,6 @@ func (e *Engine) start() {
 		default:
 		}
 
-		// if current app is running, stop it
-		e.withLock(func() {
-			close(e.binStopCh)
-			e.binStopCh = make(chan bool)
-		})
 		go e.buildRun()
 	}
 }
@@ -402,6 +397,13 @@ func (e *Engine) buildRun() {
 		return
 	default:
 	}
+
+	// if current app is running, stop it
+	e.withLock(func() {
+		close(e.binStopCh)
+		e.binStopCh = make(chan bool)
+	})
+
 	if err = e.runBin(); err != nil {
 		e.runnerLog("failed to run, error: %s", err.Error())
 	}
